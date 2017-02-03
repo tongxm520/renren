@@ -1,0 +1,102 @@
+创建一个rb文件，内容如下
+require 'rubygems'     
+require 'active_record'     
+     
+ActiveRecord::Base.establish_connection(     
+  :adapter  => 'oracle_enhanced',      
+  :database => 'test',   #oracle service name   
+  :username => 'system',      
+  :password => 'system') 
+
+你还可以把数据库的配置信息单独放在一个文件中，创建一个文件database.yml，内容如下
+adapter:  oracle_enhanced   
+database: test   
+username: system   
+password: system 
+
+
+require 'rubygems'     
+require 'active_record'     
+require 'yaml'     
+     
+dbconfig = YAML::load(File.open('database.yml'))     
+ActiveRecord::Base.establish_connection(dbconfig) 
+
+require 'rubygems'     
+require 'active_record'     
+require 'yaml'       
+     
+dbconfig = YAML::load(File.open('database.yml'))     
+ActiveRecord::Base.establish_connection(dbconfig)     
+  
+class User < ActiveRecord::Base    
+  set_table_name "my_user"  
+end     
+     
+puts User.count 
+
+如果你想给activerecord加上日志，可以这么做
+require 'rubygems'     
+require 'active_record'     
+require 'yaml'     
+require 'logger'     
+     
+dbconfig = YAML::load(File.open('database.yml'))     
+ActiveRecord::Base.establish_connection(dbconfig)     
+ActiveRecord::Base.logger = Logger.new(File.open('database.log', 'a'))     
+     
+class User < ActiveRecord::Base   
+   set_table_name "my_user"  
+end     
+     
+puts User.count
+
+#################################################
+比较好的习惯是按照传统rails方法建好数据库配置文件和model。
+另外假设目录结构是与rails生成的一样。生成model：where_store
+ruby script/generate resource where_store stuff:string location:string store_type:string
+这将会缺省生成在app/models目录下，符合rails。
+生成数据库：rake db:migrate  
+
+建一个ruby文件，假如：lib/robot.rb
+
+
+require "rubygems"
+require "active_record"
+require "yaml"
+require "logger"
+Dir["app/models/*.rb"].each(){|f| require f}
+
+module Robot
+	module_function
+	LOGGER=Logger.new("log/robot.log", "daily")
+
+	def debug_log(msg)
+	  LOGGER.debug(msg)
+	end
+	def connect_db
+	  ActiveRecord::Base.establish_connection(
+	  YAML.load_file("config/database.yml")["development"])
+	end
+
+	def run
+	  connect_db()
+	end
+end 
+这里require了比较多的东西，而且最后把app/models/*.rb全部包括进来了，因为不启动rails，只是用一下目录结构和activerecord，所以就需要人工引用。
+YAML则是载入数据库配置文件，并且取出development的配置。
+LOGGER当然是生成一个日志文件。
+这里仅仅连接了一下数据库，并没有干别的事，其他的用法与rails里一样，直接可以使用WhereStore.find, .new 等等。
+非常简单，没有惊动rails，仅仅是使用了active record。
+还可以写个简单的脚本(script/run_robot)来执行这个：
+
+#!/usr/bin/env ruby
+require "lib/robot"
+Robot.run 
+
+在shell下执行：
+ruby script/run_robot  
+
+
+
+

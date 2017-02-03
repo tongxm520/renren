@@ -1,0 +1,149 @@
+注意：lib目录下必须有个和你gem名字一样的rb文件。
+
+代码如下:
+$ cd hola 
+$ tree 
+. 
+  ├── hola.gemspec 
+  └── lib 
+      └── hola.rb  
+
+2. 编写代码
+. hola.rb
+% cat lib/hola.rb 
+class Hola 
+ def self.hi 
+  puts "Hello world!"
+ end
+end
+
+.hola.gemspec
+% cat hola.gemspec 
+Gem::Specification.new do |s| 
+ s.name    = 'hola'
+ s.version   = '0.0.0'
+ s.date    = '2010-04-28'
+ s.summary   = "Hola!"
+ s.description = "A simple hello world gem"
+ s.authors   = ["Nick Quaranto"] 
+ s.email    = 'nick@quaran.to'
+ s.files    = ["lib/hola.rb"] 
+ s.homepage  = 
+  'http://rubygems.org/gems/hola'
+end
+这里面可以设置很多属性。我会专门写篇文章介绍。
+上面字段的意思，比较简单。相信大家都能理解。
+
+4.测试使用
+% irb 
+>> require 'hola'
+=> true
+>> Hola.hi 
+Hello world! 
+
+注意：在ruby 1.9.2之前到版本里面，需要先require 'rubygem'，才能使用我们写的gem.
+
+5.发布到rubygems网站
+$ curl -u tom https://rubygems.org/api/v1/api_key.yaml > 
+~/.gem/credentials 
+Enter host password for user 'tom': 
+
+设定完之后发布
+% gem push hola-0.0.0.gem 
+Pushing gem to RubyGems.org... 
+Successfully registered gem: hola (0.0.0) 
+
+稍微复杂的rubygem例子
+上面的例子只有一个ruby文件，一般gem应该没有这么简单的。
+下面说下有多个ruby文件该怎么写。
+1. 目录结构
+多了个hola目录和translator.rb文件
+
+% tree 
+. 
+├── hola.gemspec 
+└── lib 
+  ├── hola 
+  │  └── translator.rb 
+  └── hola.rb 
+
+2. 代码
+
+lib/hola/translator.rb
+% cat lib/hola/translator.rb 
+class Hola::Translator 
+ def initialize(language) 
+  @language = language 
+ end
+  
+ def hi 
+  case @language
+  when :spanish
+   "hola mundo"
+  else
+   "hello world"
+  end
+ end
+end
+
+lib/hola.rb
+
+% cat lib/hola.rb 
+class Hola 
+ def self.hi(language = :english) 
+  translator = Translator.new(language) 
+  translator.hi 
+ end
+end
+require 'hola/translator'
+
+
+
+.hola.gemspec
+% cat hola.gemspec 
+Gem::Specification.new do |s| 
+ s.name    = 'hola'
+ s.version   = '0.0.0'
+ s.date    = '2010-04-28'
+ s.summary   = "Hola!"
+ s.description = "A simple hello world gem"
+ s.authors   = ["Nick Quaranto"] 
+ s.email    = 'nick@quaran.to'
+ s.files    = ["lib/hola.rb", "lib/hola/translator.rb"] 
+ s.homepage  = 
+  'http://rubygems.org/gems/hola'
+end
+
+最后说下怎么写个 gem包含可执行文件的例子。
+这个也很简单。像rake就是典型的包含可执行文件的gem.
+1. 在刚才工程目录下建个bin文件夹
+生成可执行文件，并且修改权限为可运行。
+% mkdir bin 
+% touch bin/hola 
+% chmod a+x bin/hola 
+
+2. 修改可执行文件内容
+bin/hola
+
+#!/usr/bin/env ruby 
+
+require 'hola'
+puts Hola.hi(ARGV[0]) 
+
+测试下
+% ruby -Ilib ./bin/hola 
+hello world 
+  
+% ruby -Ilib ./bin/hola spanish 
+hola mundo 
+
+3 .最后修改gemspec
+% head -4 hola.gemspec 
+Gem::Specification.new do |s| 
+ s.name    = 'hola'
+ s.version   = '0.0.1'
+ s.executables << 'hola'
+其他就和上面一样了。很简单吧。
+
+
+

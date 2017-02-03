@@ -1,0 +1,35 @@
+renren: &renren
+  adapter: mysql2
+  encoding: utf8
+  reconnect: false
+  username: root
+  password: "123456"
+  pool: 5
+  socket: /tmp/mysql.sock
+
+development:
+  database: renren_dev
+  <<: *renren
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  database: renren_test
+  <<: *renren
+
+production:
+  database: renren_prod
+  <<: *renren
+
+spider:
+  adapter: mysql2
+  encoding: utf8
+  reconnect: false
+  username: root
+  password: "123456"
+  pool: 5
+  socket: /tmp/mysql.sock
+  database: renren_dev
+
+
