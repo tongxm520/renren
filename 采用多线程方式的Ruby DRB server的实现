@@ -18,5 +18,7 @@ b) client发出请求后可以立即返回，不需要阻塞在那里等待serve
 1) 现在这样频繁的创新子线程比较耗资源，做成线程池的方式会好一些。
 2) 现在只有一个消息队列，是按FIFO处理的。还可以做得更灵活一些，比如支持多个优先级，按照一定的策略对于消息队列进行调度，等等。
 
+Thread-safety and concurrency are complex subjects. You should avoid dependencies and shared state as much as you can. However, sometimes that’s not possible but there are a few solutions that can be applied to prevent race conditions. In this post we presented a way to achieve a mutex that can be shared across processes and can guarantee that a certain block of code can run exclusively.
+
 
 

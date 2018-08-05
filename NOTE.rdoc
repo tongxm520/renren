@@ -1,0 +1,125 @@
+>users
+id
+gender
+birth
+hometown
+address
+school
+level
+crawled
+name
+parent_id
+
+>relationships
+id
+from_id
+to_id
+
+
+rails g model Task
+rails g model Resource
+###########################################################################
+mysqld_safe --defaults-file=/home/simon/Desktop/Depot/config/my.cnf --user=mysql &
+查看MySQL端口号:
+mysql> show variables like 'port';
+
+File.dirname(__FILE__)
+
+百度: Rails Recipes pdf
+https://pragprog.com/book/rr2/rails-recipes
+http://vdisk.weibo.com/s/AN6lEDIMOlSB
+http://ishare.iask.sina.com.cn/f/61405722.html
+
+r=ActiveRecord::Base.connection.execute 'show create database renren_dev'
+r.each {|row| puts row }
+r=ActiveRecord::Base.connection.execute 'show tables'
+r.each {|row| puts row }
+r=ActiveRecord::Base.connection.execute 'show variables like "%char%"'
+r.each {|row| puts row }
+>> ActiveRecord::Base.connection.columns("wp_comments").map(&:name).grep(/id/)
+=> ["comment_id", "comment_post_id", "comment_author_id", "user_id"]
+>> Calendar.column_names
+=> ["id", "creator_id", "description", "org_id"]
+
+
+Rails Activerecord连接多个数据库解决方案 
+最近工作需要从A数据库迁移部分数据至B数据库，中间需要同时连接A,B两个数据库，故做了相关调研。从本质上来讲，ActiveRecord连接数据库是由ActiveRecord::Base的establish_connection方法来处理的，只要用不同的数据库配置来调用这个方法，就可以实现连接不同的数据库了。具体操作过程很简单：
+
+1.在config/database.yml中设置多个数据库配置：
+database_a: 
+ adapter: mysql2 
+ host: x.x.x.x 
+ username: xxx 
+ password: xxx 
+ database: xxx 
+
+database_b: 
+ adapter: mysql2 
+ host: x.x.x.x 
+ username: xxx 
+ password: xxx 
+ database: xxx 
+
+2.在Model中新增对应model:
+class MyModel < ActiveRecord::Base 
+  self.abstract_class = true
+  establish_connection :database_b
+end 
+
+其中self.abstract_class = true的作用是：
+# Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
+# If you are using inheritance with ActiveRecord and don't want child classes
+# to utilize the implied STI table name of the parent class, this will need to be true.
+# For example, given the following:
+#   class SuperClass < ActiveRecord::Base
+#     self.abstract_class = true
+#   end
+#   class Child < SuperClass
+#     self.table_name = 'the_table_i_really_want'
+#   end
+
+self.abstract_class = true is required to make Child.find,.create, or any Arel method use the_table_i_really_want instead of a table called super_classes
+
+3.在controller中调用：require 'my_model' 
+即可正常使用了。
+
+
+如何设置mysql在局域网中访问
+第一：更改 “mysql” 数据库里的 “user” 表里的 “host” 项，从”localhost”改称'%'。
+或者新加条记录，“host” 项为要访问的ip地址，并授权。重启mysql服务。
+第二：在系统防火墙添加例外端口：3306，并允许例外。
+
+ERROR 1130: Host '192.168.0.100' is not allowed to connect to this MySQL server的解决方法： 
+1. 改表法。可能是你的帐号不允许从远程登陆，只能在localhost。这个时候只要在localhost的那台电脑，登入mysql后，更改 "mysql" 数据库里的 "user" 表里的 "host" 项，从"localhost"改称"%" 
+
+mysql -u root -p
+mysql>use mysql;
+mysql>select host from user where user='root';
+mysql>update user set host = '%' where user ='root';
+mysql>flush privileges;
+mysql>select host,user from user where user='root';
+第一句是以权限用户root登录
+第二句：选择mysql库
+第三句：查看mysql库中的user表的host值（即可进行连接访问的主机/IP名称）
+第四句：修改host值（以通配符%的内容增加主机/IP地址），当然也可以直接增加IP地址
+第五句：刷新MySQL的系统权限相关表
+第六句：再重新查看user表时，有修改。
+重起mysql服务即可完成。 
+
+
+2. 授权法。例如，你想myuser使用mypassword从任何主机连接到mysql服务器的话。
+
+GRANT ALL PRIVILEGES ON *.* TO 'myuser'@'%' IDENTIFIED BY 'mypassword' WITH GRANT OPTION;
+如果你想允许用户myuser从ip为192.168.1.3的主机连接到mysql服务器，并使用mypassword作为密码
+GRANT ALL PRIVILEGES ON *.* TO 'myuser'@'192.168.1.3' IDENTIFIED BY 'mypassword' WITH GRANT OPTION;
+
+3.在window自带的防火墙里的例外添加3306端口 
+
+
+
+使用devise+cancan+rolify建立完整的权限管理系统
+$:.push File.expand_path(File.dirname(__FILE__)) unless $:.include?(File.expand_path(File.dirname(__FILE__)))
+(Array(1..50)).shuffle
+
+
+
